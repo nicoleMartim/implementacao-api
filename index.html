@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>API - Pokémon</title>
+</head>
+
+<body>
+
+    <h1>Buscar Pokémon</h1>
+
+    <input type="text" id="pokemon" placeholder="Insira o Pokémon">
+
+    <button onclick="buscarPokemon()">Buscar</button>
+
+    <p id="aviso"></p>
+
+    <div id="resultado"></div>
+
+    <script>
+
+        async function buscarPokemon() {
+
+            const pokemon = document.getElementById('pokemon').value.toLowerCase().trim();
+
+            const aviso = document.getElementById('aviso');
+
+            const resultado = document.getElementById('resultado');
+
+            const resposta = await fetch(
+                `https://pokeapi.co/api/v2/pokemon/${pokemon}`
+            );
+
+            if (!resposta.ok) {
+                aviso.textContent = 'Pokémon não encontrado. Código: ' + resposta.status;
+                return;
+            }
+            
+            const dados = await resposta.json();
+
+            const altura = dados.height / 10;
+            const peso = dados.weight / 10;
+            const tipos = dados.types.map(tipo => tipo.type.name).join(', ');
+            
+            const respostaEspecie = await fetch( `https://pokeapi.co/api/v2/pokemon-species/${pokemon}`);
+            
+            const especie = await respostaEspecie.json();
+
+            const descricaoPortugues = especie.flavor_text_entries.find(
+            entrada => entrada.language.name === 'pt-br'
+            );
+
+            const descricao = descricaoPortugues
+            ? descricaoPortugues.flavor_text
+            : especie.flavor_text_entries.find(
+                entrada => entrada.language.name === 'en'
+            ).flavor_text;
+
+
+
+            aviso.textContent = '';
+
+            resultado.innerHTML = `
+                <h2>${dados.name.toUpperCase()}</h2>
+                <img src="${dados.sprites.front_default}" width="200">
+                <p><strong>Descrição:</strong></p> 
+                <p>${descricao}</p> 
+                <p><strong>Altura:</strong> ${altura} m</p> 
+                <p><strong>Peso:</strong> ${peso} kg</p> 
+                <p><strong>Tipo:</strong> ${tipos}</p>
+            `;
+        }
+
+    </script>
+
+</body>
+
+</html>
